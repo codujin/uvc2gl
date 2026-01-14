@@ -1,8 +1,8 @@
 #ifndef UVC2GL_APPLICATION_H
 #define UVC2GL_APPLICATION_H
 
-#include "../graphics/Window.h"
 #include "../graphics/Renderer.h"
+#include "../graphics/Window.h"
 #include <memory>
 
 namespace UVC2GL {
