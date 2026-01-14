@@ -13,7 +13,15 @@ src/
 │   ├── Window.h
 │   ├── Window.cpp
 │   ├── Renderer.h
-│   └── Renderer.cpp
+│   ├── Renderer.cpp
+│   ├── Shader.h
+│   ├── Shader.cpp
+│   ├── Quad.h
+│   └── Quad.cpp
+├── assets/         # Shader files and resources
+│   └── shaders/
+│       ├── Quad.vert
+│       └── Quad.frag
 └── README.md
 ```
 
@@ -21,7 +29,7 @@ Future phases will add:
 - `video/` - Video capture and decoding (Phase 2)
 - `audio/` - Audio capture and playback (Phase 3)
 
-## Current Modules (Phase 0)
+## Current Modules (Phase 0 + Phase 1)
 
 ### Core Module (`core/`)
 
@@ -32,12 +40,15 @@ Future phases will add:
   - Implements main game loop (input → update → render)
   - Handles application-level state and timing
 
-### Window (`Window.h/cpp`)
+### Graphics Module (`graphics/`)
+
+#### Window (`Window.h/cpp`)
 - **Purpose**: SDL2 window and OpenGL context management
 - **Responsibilities**:
   - Initializes SDL2 subsystems
   - Creates window with OpenGL support
   - Manages OpenGL context creation
+  - Initializes GLEW for modern OpenGL extensions
   - Handles buffer swapping
   - Provides window properties (width, height, etc.)
 
@@ -45,9 +56,24 @@ Future phases will add:
 - **Purpose**: OpenGL rendering operations
 - **Responsibilities**:
   - Pre-draw setup (viewport, clear, etc.)
-  - Actual drawing operations
+  - Manages shader and quad instances
+  - Coordinates rendering of fullscreen quad
   - OpenGL state management
-  - Will contain shaders, VAOs, textures in future phases
+
+#### Shader (`Shader.h/cpp`)
+- **Purpose**: GLSL shader program management
+- **Responsibilities**:
+  - Loads vertex and fragment shaders from files
+  - Compiles and links shader programs
+  - Provides shader activation interface
+  - Error handling and reporting
+
+#### Quad (`Quad.h/cpp`)
+- **Purpose**: Fullscreen quad geometry
+- **Responsibilities**:
+  - Creates and manages VAO/VBO for two triangles
+  - Provides draw call interface
+  - Handles OpenGL geometry resources
 
 ## Design Principles
 
@@ -58,11 +84,6 @@ Future phases will add:
 - **Exception Safety**: Constructors throw on failure instead of silent errors
 
 ## Future Expansion (Upcoming Phases)
-
-### Phase 1 - Basic Render Quad
-- Add shader management to Renderer
-- Implement fullscreen quad geometry
-- Add texture handling
 
 ### Phase 2 - Video Capture
 - New `VideoCapture` class for V4L2 integration

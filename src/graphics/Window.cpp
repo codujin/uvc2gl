@@ -13,6 +13,7 @@ Window::Window(const char* title, int width, int height)
     InitSDL();
     CreateWindow(title);
     CreateGLContext();
+    InitGLEW();
 }
 
 Window::~Window() {
@@ -57,6 +58,15 @@ void Window::CreateGLContext() {
     m_glContext = SDL_GL_CreateContext(m_window);
     if (!m_glContext) {
         throw std::runtime_error(std::string("OpenGL context creation failed: ") + SDL_GetError());
+    }
+}
+
+void Window::InitGLEW() {
+    glewExperimental = GL_TRUE;
+    GLenum err = glewInit();
+    if (err != GLEW_OK) {
+        throw std::runtime_error(std::string("GLEW initialization failed: ") + 
+                                 reinterpret_cast<const char*>(glewGetErrorString(err)));
     }
 }
 
