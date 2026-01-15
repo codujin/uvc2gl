@@ -24,6 +24,8 @@ set(SOURCES
 
 # executable
 add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(Probe src/video/v4l2Probe.cpp)
+add_executable(StreamMjpg src/video/v4l2StreamMjpg.cpp)
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_LIBRARIES} OpenGL::GL)
