@@ -1,6 +1,6 @@
 #ifndef UVC2GL_WINDOW_H
 #define UVC2GL_WINDOW_H
-
+#include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_opengl.h>
@@ -28,6 +28,7 @@ private:
     void InitSDL();
     void CreateWindow(const char* title);
     void CreateGLContext();
+    void InitGLEW();
     
     SDL_Window* m_window;
     SDL_GLContext m_glContext;

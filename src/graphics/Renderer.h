@@ -1,6 +1,9 @@
 #ifndef UVC2GL_RENDERER_H
 #define UVC2GL_RENDERER_H
 
+#include "Shader.h"
+#include "Quad.h"
+#include <memory>
 namespace UVC2GL {
 
 class Renderer {
@@ -12,12 +15,13 @@ public:
     Renderer(const Renderer&) = delete;
     Renderer& operator=(const Renderer&) = delete;
 
-    void PreDraw();
+    void PreDraw(int width, int height);
     void Draw();
     void PrintOpenGLVersion();
 
 private:
-    // Future: Add shader programs, VAOs, textures, etc.
+    std::unique_ptr<Shader> m_shader;
+    std::unique_ptr<Quad> m_quad;
 };
 
 } // namespace UVC2GL

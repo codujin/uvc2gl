@@ -38,7 +38,7 @@ void Application::Update() {
 }
 
 void Application::Render() {
-    m_renderer->PreDraw();
+    m_renderer->PreDraw( m_window->GetWidth(), m_window->GetHeight());
     m_renderer->Draw();
     m_window->SwapBuffers();
 }

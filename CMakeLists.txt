@@ -14,12 +14,18 @@ include_directories(${SDL2_INCLUDE_DIRS})
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 
+# glew
+find_package(GLEW REQUIRED)
+include_directories(${GLEW_INCLUDE_DIRS})
+
 # Source files
 set(SOURCES
     main.cpp
     src/core/Application.cpp
     src/graphics/Window.cpp
     src/graphics/Renderer.cpp
+    src/graphics/Quad.cpp
+    src/graphics/Shader.cpp
 )
 
 # executable
@@ -27,5 +33,13 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 add_executable(Probe src/video/v4l2Probe.cpp)
 add_executable(StreamMjpg src/video/v4l2StreamMjpg.cpp)
 
+# Copy shader files to build directory
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/src/assets/shaders
+    ${CMAKE_BINARY_DIR}/shaders
+    COMMENT "Copying shaders to build directory"
+)
+
 # Link libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_LIBRARIES} OpenGL::GL)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_LIBRARIES} OpenGL::GL GLEW::GLEW)
