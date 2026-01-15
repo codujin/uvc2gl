@@ -3,8 +3,14 @@
 in vec2 vUV;
 out vec4 FragColor;
 
+uniform sampler2D uTex;
+uniform int uFlipY;
+
 void main()
 {
-    // Placeholder: nice visible gradient (proves your shader + quad + UVs work)
-    FragColor = vec4(vUV.x, vUV.y, 0.25, 1.0);
+    vec2 uv = vUV;
+    if (uFlipY == 1)
+        uv.y = 1.0 - uv.y;
+
+    FragColor = texture(uTex, uv);
 }

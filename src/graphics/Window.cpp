@@ -46,12 +46,15 @@ void Window::CreateWindow(const char* title) {
         SDL_WINDOWPOS_UNDEFINED,
         m_width,
         m_height,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
+        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
 
     if (!m_window) {
         throw std::runtime_error(std::string("Window creation failed: ") + SDL_GetError());
     }
+    
+    // Set minimum size and maintain 16:9 aspect ratio
+    SDL_SetWindowMinimumSize(m_window, 640, 360);
 }
 
 void Window::CreateGLContext() {
@@ -72,6 +75,11 @@ void Window::InitGLEW() {
 
 void Window::SwapBuffers() {
     SDL_GL_SwapWindow(m_window);
+}
+
+void Window::UpdateSize(int width, int height) {
+    m_width = width;
+    m_height = height;
 }
 
 } // namespace UVC2GL

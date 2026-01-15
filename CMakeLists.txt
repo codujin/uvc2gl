@@ -18,6 +18,24 @@ include_directories(${OPENGL_INCLUDE_DIR})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIRS})
 
+# FFmpeg
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FFMPEG REQUIRED libavcodec libavformat libswscale libavutil)
+include_directories(${FFMPEG_INCLUDE_DIRS})
+link_directories(${FFMPEG_LIBRARY_DIRS})
+
+# ImGui
+set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/external/imgui)
+set(IMGUI_SOURCES
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+)
+include_directories(${IMGUI_DIR} ${IMGUI_DIR}/backends)
+
 # Source files
 set(SOURCES
     main.cpp
@@ -26,12 +44,17 @@ set(SOURCES
     src/graphics/Renderer.cpp
     src/graphics/Quad.cpp
     src/graphics/Shader.cpp
+    src/video/VideoCapture.cpp
+    src/video/MjpgDecoder.cpp
+    src/video/V4L2Capabilities.cpp
+    ${IMGUI_SOURCES}
 )
 
 # executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 add_executable(Probe src/video/v4l2Probe.cpp)
 add_executable(StreamMjpg src/video/v4l2StreamMjpg.cpp)
+add_executable(MjpgDecodeTest src/video/MjpgDecodeTest.cpp)
 
 # Copy shader files to build directory
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -42,4 +65,5 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 )
 
 # Link libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_LIBRARIES} OpenGL::GL GLEW::GLEW)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_LIBRARIES} OpenGL::GL GLEW::GLEW ${FFMPEG_LINK_LIBRARIES})
+target_link_libraries(MjpgDecodeTest PRIVATE ${FFMPEG_LINK_LIBRARIES})
