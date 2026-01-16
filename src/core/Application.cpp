@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "Version.h"
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_opengl3.h>
@@ -362,6 +363,9 @@ void Application::RenderUI() {
                 ToggleFullscreen();
                 m_showContextMenu = false;
             }
+            
+            ImGui::Separator();
+            ImGui::TextDisabled("uvc2gl v%s", VERSION);
             
             ImGui::End();
         }

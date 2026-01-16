@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
-project(uvc2gl)
+project(uvc2gl VERSION 1.0.0 LANGUAGES C CXX)
+
+# Version is managed in src/core/Version.h
+# Update VERSION_PRERELEASE in Version.h for dev/alpha/beta builds
 
 # compiler
 set(CMAKE_C_COMPILER clang-21)
