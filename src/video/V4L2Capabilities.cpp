@@ -3,6 +3,8 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <cstring>
 #include <iostream>
 
 namespace UVC2GL {
@@ -54,6 +56,46 @@ std::vector<VideoFormat> V4L2Capabilities::QueryFormats(const std::string& devic
     
     close(fd);
     return formats;
+}
+
+std::vector<VideoDevice> V4L2Capabilities::EnumerateDevices() {
+    std::vector<VideoDevice> devices;
+    
+    DIR* dir = opendir("/dev");
+    if (!dir) {
+        std::cerr << "Failed to open /dev directory" << std::endl;
+        return devices;
+    }
+    
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        // Look for video* devices
+        if (strncmp(entry->d_name, "video", 5) == 0) {
+            std::string path = "/dev/" + std::string(entry->d_name);
+            
+            int fd = open(path.c_str(), O_RDWR | O_CLOEXEC);
+            if (fd < 0) {
+                continue; // Skip devices we can't open
+            }
+            
+            v4l2_capability caps{};
+            if (xioctl(fd, VIDIOC_QUERYCAP, &caps) >= 0) {
+                // Check if it's a video capture device
+                if (caps.capabilities & V4L2_CAP_VIDEO_CAPTURE) {
+                    VideoDevice device;
+                    device.path = path;
+                    device.name = reinterpret_cast<const char*>(caps.card);
+                    device.driver = reinterpret_cast<const char*>(caps.driver);
+                    devices.push_back(device);
+                }
+            }
+            
+            close(fd);
+        }
+    }
+    
+    closedir(dir);
+    return devices;
 }
 
 }

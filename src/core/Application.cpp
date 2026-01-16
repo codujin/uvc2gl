@@ -16,15 +16,42 @@ Application::Application(const char* title, int width, int height) {
     // Initialize ImGui
     InitImGui();
     
-    // Query available formats
-    m_availableFormats = V4L2Capabilities::QueryFormats("/dev/video1");
+    // Enumerate available devices
+    m_availableDevices = V4L2Capabilities::EnumerateDevices();
+    if (!m_availableDevices.empty()) {
+        // Prefer /dev/video1 if available, otherwise use first device
+        bool foundVideo1 = false;
+        for (const auto& device : m_availableDevices) {
+            if (device.path == "/dev/video1") {
+                m_currentDevice = device.path;
+                foundVideo1 = true;
+                break;
+            }
+        }
+        if (!foundVideo1) {
+            m_currentDevice = m_availableDevices[0].path;
+        }
+        std::cout << "Found " << m_availableDevices.size() << " video device(s)" << std::endl;
+    }
+    
+    // Query available formats for current device
+    m_availableFormats = V4L2Capabilities::QueryFormats(m_currentDevice);
+    
+    // Use first available format if exists, otherwise keep defaults
+    if (!m_availableFormats.empty()) {
+        m_currentWidth = m_availableFormats[0].width;
+        m_currentHeight = m_availableFormats[0].height;
+        m_currentFps = m_availableFormats[0].fps;
+        std::cout << "Selected default format: " << m_currentWidth << "x" << m_currentHeight 
+                  << "@" << m_currentFps << "fps" << std::endl;
+    }
     
     // Try to initialize video capture (may fail if device not available)
     try {
-        m_video = std::make_unique<VideoCapture>("/dev/video1", m_currentWidth, m_currentHeight, m_currentFps, 10);
+        m_video = std::make_unique<VideoCapture>(m_currentDevice, m_currentWidth, m_currentHeight, m_currentFps, 10);
         m_decoder = std::make_unique<MjpgDecoder>();
         m_video->Start();
-        std::cout << "Video capture started successfully" << std::endl;
+        std::cout << "Video capture started on " << m_currentDevice << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "Warning: Failed to initialize video capture: " << e.what() << std::endl;
         std::cerr << "Running without video input." << std::endl;
@@ -120,6 +147,24 @@ void Application::RenderUI() {
         if (ImGui::Begin("##contextmenu", &m_showContextMenu, 
                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
             
+            // Device selection
+            if (!m_availableDevices.empty()) {
+                ImGui::Text("Video Device");
+                ImGui::Separator();
+                
+                for (const auto& device : m_availableDevices) {
+                    bool isSelected = (device.path == m_currentDevice);
+                    if (ImGui::MenuItem(device.toString().c_str(), nullptr, isSelected)) {
+                        if (!isSelected) {
+                            SwitchDevice(device.path);
+                        }
+                    }
+                }
+                
+                ImGui::Separator();
+            }
+            
+            // Resolution & framerate selection
             ImGui::Text("Resolution & Framerate");
             ImGui::Separator();
             
@@ -158,11 +203,55 @@ void Application::RestartCapture(int width, int height, int fps) {
     
     // Start new capture
     try {
-        m_video = std::make_unique<VideoCapture>("/dev/video1", width, height, fps, 10);
+        m_video = std::make_unique<VideoCapture>(m_currentDevice, width, height, fps, 10);
         m_video->Start();
         std::cout << "Video capture restarted successfully" << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "Failed to restart video capture: " << e.what() << std::endl;
+    }
+}
+
+void Application::SwitchDevice(const std::string& devicePath) {
+    if (devicePath == m_currentDevice) {
+        return;
+    }
+    
+    // Stop current capture
+    if (m_video) {
+        m_video->Stop();
+        m_video.reset();
+    }
+    
+    // Reset decoder to clear any cached state
+    if (m_decoder) {
+        m_decoder.reset();
+    }
+    
+    // Update device
+    m_currentDevice = devicePath;
+    
+    // Query formats for new device
+    m_availableFormats = V4L2Capabilities::QueryFormats(m_currentDevice);
+    
+    if (m_availableFormats.empty()) {
+        std::cerr << "No MJPEG formats available for device " << m_currentDevice << std::endl;
+        return;
+    }
+    
+    // Use first available format from the new device
+    m_currentWidth = m_availableFormats[0].width;
+    m_currentHeight = m_availableFormats[0].height;
+    m_currentFps = m_availableFormats[0].fps;
+    
+    // Recreate decoder for new device
+    m_decoder = std::make_unique<MjpgDecoder>();
+    
+    // Start capture with new device
+    try {
+        m_video = std::make_unique<VideoCapture>(m_currentDevice, m_currentWidth, m_currentHeight, m_currentFps, 10);
+        m_video->Start();
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to switch device: " << e.what() << std::endl;
     }
 }
 
