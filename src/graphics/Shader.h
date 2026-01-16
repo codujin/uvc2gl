@@ -3,6 +3,8 @@
 
 #include <GL/glew.h>
 #include <string>
+#include <SDL2/SDL_opengl.h>
+#include <string>
 
 namespace UVC2GL {
     class Shader {
@@ -15,6 +17,8 @@ namespace UVC2GL {
 
             void Use() const;
             unsigned int GetID() const;
+            void SetInt(const std::string& name, int v) const;
+
         private:
             static std::string LoadShaderSource(const std::string& filepath);
             static GLuint CompileShader(GLenum type, const std::string& source);

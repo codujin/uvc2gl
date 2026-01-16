@@ -4,7 +4,7 @@
 
 int main() {
     try {
-        UVC2GL::Application app("UVC2GL", 800, 600);
+        UVC2GL::Application app("UVC2GL - Game Capture", 1920, 1080);
         app.Run();
     } catch (const std::exception& e) {
         std::cerr << "Fatal error: " << e.what() << std::endl;

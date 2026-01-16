@@ -17,6 +17,7 @@ public:
     Window& operator=(const Window&) = delete;
 
     void SwapBuffers();
+    void UpdateSize(int width, int height);
     bool ShouldClose() const { return m_shouldClose; }
     void SetShouldClose(bool value) { m_shouldClose = value; }
     
