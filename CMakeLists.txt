@@ -4,10 +4,9 @@ project(uvc2gl VERSION 1.0.0 LANGUAGES C CXX)
 # Version is managed in src/core/Version.h
 # Update VERSION_PRERELEASE in Version.h for dev/alpha/beta builds
 
-# compiler
-set(CMAKE_C_COMPILER clang-21)
-set(CMAKE_CXX_COMPILER clang++-21)
+# C++ Standard
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # SDL2
 find_package(SDL2 REQUIRED)
