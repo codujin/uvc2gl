@@ -3,8 +3,11 @@
 #include <exception>
 
 int main() {
+    // Force SDL to use PulseAudio before SDL initializes
+    setenv("SDL_AUDIODRIVER", "pulseaudio", 1);
+    
     try {
-        UVC2GL::Application app("UVC2GL - Game Capture", 1920, 1080);
+        uvc2gl::Application app("uvc2gl - Game Capture", 1920, 1080);
         app.Run();
     } catch (const std::exception& e) {
         std::cerr << "Fatal error: " << e.what() << std::endl;

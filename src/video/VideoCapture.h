@@ -10,7 +10,7 @@
 #include <string>
 #include <thread>
 
-namespace UVC2GL {
+namespace uvc2gl {
     class VideoCapture {
         public:
             VideoCapture(std::string device, int width, int height, int fps, size_t ringBufferSize);
@@ -21,6 +21,7 @@ namespace UVC2GL {
 
             void Start();
             void Stop();
+            bool IsRunning() const { return m_Running.load(); }
 
             std::optional<Frame> GetFrame();
 

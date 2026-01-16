@@ -2,7 +2,7 @@
 #include <stdexcept>
 
 
-namespace UVC2GL {
+namespace uvc2gl {
 
     Quad::Quad(){
         // Render two Tris to make a Quad
@@ -48,4 +48,4 @@ namespace UVC2GL {
         __glewBindVertexArray(0);
     }
 
-} // namespace UVC2GL
+} // namespace uvc2gl

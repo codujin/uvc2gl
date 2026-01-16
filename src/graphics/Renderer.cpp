@@ -15,7 +15,7 @@ static void InitTexture(GLuint& tex) {
 }
 
 
-namespace UVC2GL {    
+namespace uvc2gl {    
 
 Renderer::Renderer() {
     m_shader = std::make_unique<Shader>("shaders/Quad.vert", "shaders/Quad.frag");
@@ -129,4 +129,4 @@ float Renderer::GetVideoAspectRatio() const {
     return 0.0f;
 }
 
-} // namespace UVC2GL
+} // namespace uvc2gl

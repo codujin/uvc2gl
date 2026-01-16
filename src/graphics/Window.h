@@ -1,11 +1,11 @@
-#ifndef UVC2GL_WINDOW_H
-#define UVC2GL_WINDOW_H
+#ifndef uvc2gl_WINDOW_H
+#define uvc2gl_WINDOW_H
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_opengl.h>
 
-namespace UVC2GL {
+namespace uvc2gl {
 
 class Window {
 public:
@@ -38,6 +38,6 @@ private:
     bool m_shouldClose;
 };
 
-} // namespace UVC2GL
+} // namespace uvc2gl
 
-#endif // UVC2GL_WINDOW_H
+#endif // uvc2gl_WINDOW_H

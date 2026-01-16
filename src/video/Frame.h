@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <vector>
-namespace UVC2GL{
+namespace uvc2gl{
 struct Frame {
     int width;
     int height;

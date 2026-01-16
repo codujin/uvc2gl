@@ -1,7 +1,7 @@
 #include "Window.h"
 #include <stdexcept>
 
-namespace UVC2GL {
+namespace uvc2gl {
 
 Window::Window(const char* title, int width, int height)
     : m_window(nullptr)
@@ -27,7 +27,7 @@ Window::~Window() {
 }
 
 void Window::InitSDL() {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         throw std::runtime_error(std::string("SDL initialization failed: ") + SDL_GetError());
     }
 
@@ -82,4 +82,4 @@ void Window::UpdateSize(int width, int height) {
     m_height = height;
 }
 
-} // namespace UVC2GL
+} // namespace uvc2gl

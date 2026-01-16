@@ -15,7 +15,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
-namespace UVC2GL {
+namespace uvc2gl {
     //ioctl wrapper that restarts if interrupted by signal
     static int xioctl(int fd, unsigned long request, void *arg) {
         int r;
@@ -39,7 +39,12 @@ namespace UVC2GL {
     }
 
     VideoCapture::~VideoCapture() {
-        Stop();
+        try {
+            Stop();
+        } catch (...) {
+            // Never throw from destructor
+            std::cerr << "Exception in VideoCapture destructor" << std::endl;
+        }
     }
 
     void VideoCapture::Start() {
@@ -51,8 +56,16 @@ namespace UVC2GL {
     void VideoCapture::Stop(){
         if (!m_Running.exchange(false))
             return; // not running
-        if (m_CaptureThread.joinable())
-            m_CaptureThread.join();
+        
+        try {
+            if (m_CaptureThread.joinable()) {
+                m_CaptureThread.join();
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error joining capture thread: " << e.what() << std::endl;
+        } catch (...) {
+            std::cerr << "Unknown error joining capture thread" << std::endl;
+        }
     }
 
     std::optional<Frame> VideoCapture::GetFrame() {

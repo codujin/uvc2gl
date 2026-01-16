@@ -10,7 +10,7 @@ extern "C" {
 }
 
 
-namespace UVC2GL {
+namespace uvc2gl {
 
     class MjpgDecoder{
         public:

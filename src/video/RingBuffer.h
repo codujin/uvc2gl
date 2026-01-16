@@ -5,7 +5,7 @@
 #include <mutex>
 #include <optional>
 
-namespace UVC2GL {
+namespace uvc2gl {
     class RingBuffer {
         public:
             explicit RingBuffer(size_t capacity)

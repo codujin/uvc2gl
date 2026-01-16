@@ -1,11 +1,11 @@
-#ifndef UVC2GL_QUAD_H
-#define UVC2GL_QUAD_H
+#ifndef uvc2gl_QUAD_H
+#define uvc2gl_QUAD_H
 
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
 
-namespace UVC2GL {
+namespace uvc2gl {
 
     class Quad{
         public:
@@ -23,4 +23,4 @@ namespace UVC2GL {
     };
 }
 
-#endif // UVC2GL_QUAD_H
+#endif // uvc2gl_QUAD_H

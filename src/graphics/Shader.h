@@ -1,12 +1,12 @@
-#ifndef UVC2GL_SHADER_H
-#define UVC2GL_SHADER_H
+#ifndef uvc2gl_SHADER_H
+#define uvc2gl_SHADER_H
 
 #include <GL/glew.h>
 #include <string>
 #include <SDL2/SDL_opengl.h>
 #include <string>
 
-namespace UVC2GL {
+namespace uvc2gl {
     class Shader {
         public:
             Shader(const std::string& vertexPath, const std::string& fragmentPath);
@@ -28,4 +28,4 @@ namespace UVC2GL {
 
 }
 
-#endif // UVC2GL_SHADER_H
+#endif // uvc2gl_SHADER_H

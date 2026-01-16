@@ -8,7 +8,7 @@ extern "C" {
 #include <libavutil/imgutils.h>
 }
 
-namespace UVC2GL {
+namespace uvc2gl {
     MjpgDecoder::MjpgDecoder() {
         const AVCodec* codec = avcodec_find_decoder(AV_CODEC_ID_MJPEG);
         if (!codec)

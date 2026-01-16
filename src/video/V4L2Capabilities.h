@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace UVC2GL {
+namespace uvc2gl {
 
 struct VideoFormat {
     int width;

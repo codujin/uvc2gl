@@ -1,11 +1,11 @@
-#ifndef UVC2GL_RENDERER_H
-#define UVC2GL_RENDERER_H
+#ifndef uvc2gl_RENDERER_H
+#define uvc2gl_RENDERER_H
 
 #include "Shader.h"
 #include "Quad.h"
 #include <memory>
 #include <vector>
-namespace UVC2GL {
+namespace uvc2gl {
 
 class Renderer {
 public:
@@ -31,6 +31,6 @@ private:
 
 };
 
-} // namespace UVC2GL
+} // namespace uvc2gl
 
-#endif // UVC2GL_RENDERER_H
+#endif // uvc2gl_RENDERER_H

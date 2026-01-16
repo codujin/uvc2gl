@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace UVC2GL {
+namespace uvc2gl {
     static std::string LogInfo(GLuint obj, bool isProgram){
         GLint logLength = 0;
         if (isProgram)
@@ -89,7 +89,7 @@ namespace UVC2GL {
         __glewUseProgram(m_programID);
     }
 
-    void UVC2GL::Shader::SetInt(const std::string& name, int v) const {
+    void uvc2gl::Shader::SetInt(const std::string& name, int v) const {
     GLint loc = glGetUniformLocation(m_programID, name.c_str());
     if (loc >= 0) {
         glUniform1i(loc, v);

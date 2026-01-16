@@ -7,7 +7,7 @@
 #include <cstring>
 #include <iostream>
 
-namespace UVC2GL {
+namespace uvc2gl {
 
 static int xioctl(int fd, unsigned long request, void *arg) {
     int r;
