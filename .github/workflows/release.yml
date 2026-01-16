@@ -1,0 +1,101 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v1.2.3, etc.
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          clang \
+          cmake \
+          ninja-build \
+          libsdl2-dev \
+          libglew-dev \
+          libavcodec-dev \
+          libavformat-dev \
+          libswscale-dev \
+          libavutil-dev \
+          libasound2-dev \
+          libc++-dev \
+          libc++abi-dev
+    
+    - name: Extract version from tag
+      id: version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION"
+    
+    - name: Build project
+      run: |
+        mkdir -p build
+        cd build
+        cmake -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=clang \
+          -DCMAKE_CXX_COMPILER=clang++ \
+          ..
+        ninja
+    
+    - name: Prepare release artifacts
+      run: |
+        cd build
+        mkdir -p release-artifacts
+        cp uvc2gl release-artifacts/
+        cp -r shaders release-artifacts/
+        cd release-artifacts
+        tar -czf uvc2gl-${{ steps.version.outputs.version }}-linux-x86_64.tar.gz uvc2gl shaders
+        cd ..
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref_name }}
+        body: |
+          ## uvc2gl ${{ steps.version.outputs.version }}
+          
+          ### Installation
+          ```bash
+          tar -xzf uvc2gl-${{ steps.version.outputs.version }}-linux-x86_64.tar.gz
+          cd uvc2gl
+          ./uvc2gl
+          ```
+          
+          ### Requirements
+          - Linux kernel with V4L2 support
+          - SDL2, GLEW, FFmpeg, ALSA libraries
+          - OpenGL 4.6 compatible GPU
+          
+          ### What's Changed
+          See commit history for details.
+          
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ steps.version.outputs.version }}...HEAD
+        draft: false
+        prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') || contains(github.ref, '-dev') }}
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./build/release-artifacts/uvc2gl-${{ steps.version.outputs.version }}-linux-x86_64.tar.gz
+        asset_name: uvc2gl-${{ steps.version.outputs.version }}-linux-x86_64.tar.gz
+        asset_content_type: application/gzip

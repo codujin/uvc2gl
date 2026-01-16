@@ -72,6 +72,41 @@ git checkout dev
 
 6. Push: `git push origin main --tags`
 
+7. **GitHub Actions will automatically:**
+   - Build the release binary
+   - Create a GitHub release
+   - Upload the tarball as a release asset
+
+## Automated Release System
+
+The repository includes GitHub Actions workflows:
+
+### `.github/workflows/release.yml`
+- **Triggers on**: Version tags (`v*.*.*`)
+- **Builds**: Release binary with optimizations
+- **Creates**: GitHub release with tarball
+- **Marks pre-releases**: Tags with `-alpha`, `-beta`, `-rc`, `-dev` are marked as pre-releases
+
+### `.github/workflows/build.yml`
+- **Triggers on**: Pushes to `main`/`dev`, pull requests
+- **Validates**: Code builds successfully
+- **Runs**: `--version` check
+
+### To trigger a release:
+```bash
+# Ensure you're on main with release version
+git checkout main
+# Tag the release
+git tag -a v1.0.0 -m "Release v1.0.0"
+# Push tag (triggers workflow)
+git push origin v1.0.0
+```
+
+### Monitor the release:
+- Go to `Actions` tab to watch the build
+- Release appears in `Releases` section when complete
+- Binary available as `uvc2gl-1.0.0-linux-x86_64.tar.gz`
+
 ## Pre-release Suffixes
 
 - `-dev`: Active development
