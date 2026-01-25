@@ -1,0 +1,46 @@
+name: Auto Version Bump
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Bump version and create tag
+        id: bump
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: main
+          MAJOR_STRING_TOKEN: "BREAKING CHANGE:"
+          MINOR_STRING_TOKEN: "feat:"
+          PATCH_STRING_TOKEN: "fix:"
+          NONE_STRING_TOKEN: "chore:"
+          INITIAL_VERSION: 1.0.0
+          
+      - name: Update VERSION file
+        if: steps.bump.outputs.new_tag != ''
+        run: |
+          echo "${{ steps.bump.outputs.new_tag }}" | sed 's/v//' > VERSION
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add VERSION
+          git commit -m "chore: update VERSION file to ${{ steps.bump.outputs.new_tag }}"
+          git push origin main
+      
+      - name: Print version info
+        run: |
+          echo "Previous tag: ${{ steps.bump.outputs.tag }}"
+          echo "New tag: ${{ steps.bump.outputs.new_tag }}"
+          echo "Bump type: ${{ steps.bump.outputs.part }}"
