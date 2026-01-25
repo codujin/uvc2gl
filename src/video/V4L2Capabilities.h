@@ -24,6 +24,10 @@ struct VideoDevice {
     std::string toString() const {
         return name + " (" + path + ")";
     }
+    
+    std::string displayName() const {
+        return name;
+    }
 };
 
 class V4L2Capabilities {

@@ -299,12 +299,14 @@ void Application::RenderUI() {
                     ImGui::Text("Device");
                     ImGui::Indent();
                     for (const auto& device : m_availableDevices) {
+                        ImGui::PushID(device.path.c_str());
                         bool isSelected = (device.path == m_currentDevice);
-                        if (ImGui::MenuItem(device.toString().c_str(), nullptr, isSelected)) {
+                        if (ImGui::MenuItem(device.displayName().c_str(), nullptr, isSelected)) {
                             if (!isSelected) {
                                 SwitchDevice(device.path);
                             }
                         }
+                        ImGui::PopID();
                     }
                     ImGui::Unindent();
                     ImGui::Spacing();
@@ -330,12 +332,14 @@ void Application::RenderUI() {
                     ImGui::Text("Device");
                     ImGui::Indent();
                     for (const auto& device : m_availableAudioDevices) {
+                        ImGui::PushID(device.name.c_str());
                         bool isSelected = (device.name == m_currentAudioDevice);
                         if (ImGui::MenuItem(device.toString().c_str(), nullptr, isSelected)) {
                             if (!isSelected) {
                                 SwitchAudioDevice(device.name);
                             }
                         }
+                        ImGui::PopID();
                     }
                     ImGui::Unindent();
                     ImGui::Spacing();
