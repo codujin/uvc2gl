@@ -1,12 +1,34 @@
 cmake_minimum_required(VERSION 3.12)
-project(uvc2gl VERSION 1.0.0 LANGUAGES C CXX)
 
-# Version is managed in src/core/Version.h
-# Update VERSION_PRERELEASE in Version.h for dev/alpha/beta builds
+# Read version from VERSION file
+file(READ "${CMAKE_SOURCE_DIR}/VERSION" VERSION_STRING)
+string(STRIP "${VERSION_STRING}" VERSION_STRING)
+string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-(.+))?" VERSION_MATCH "${VERSION_STRING}")
+set(VERSION_MAJOR "${CMAKE_MATCH_1}")
+set(VERSION_MINOR "${CMAKE_MATCH_2}")
+set(VERSION_PATCH "${CMAKE_MATCH_3}")
+set(VERSION_PRERELEASE "${CMAKE_MATCH_5}")
+
+project(uvc2gl VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH} LANGUAGES C CXX)
+
+# Configure Version.h with values from VERSION file
+configure_file(
+    "${CMAKE_SOURCE_DIR}/src/core/Version.h.in"
+    "${CMAKE_SOURCE_DIR}/src/core/Version.h"
+    @ONLY
+)
 
 # C++ Standard
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Optimization flags
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O3 -march=native")
 
 # SDL2
 find_package(SDL2 REQUIRED)
@@ -52,6 +74,7 @@ set(SOURCES
     src/graphics/Shader.cpp
     src/video/VideoCapture.cpp
     src/video/MjpgDecoder.cpp
+    src/video/YuyvDecoder.cpp
     src/video/V4L2Capabilities.cpp
     src/audio/AudioCapture.cpp
     src/audio/AudioPlayback.cpp
@@ -64,6 +87,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 add_executable(Probe src/video/v4l2Probe.cpp)
 add_executable(StreamMjpg src/video/v4l2StreamMjpg.cpp)
 add_executable(MjpgDecodeTest src/video/MjpgDecodeTest.cpp)
+add_executable(YuyvDecodeTest src/video/YuyvDecodeTest.cpp src/video/YuyvDecoder.cpp)
 add_executable(AudioProbe src/audio/AudioProbe.cpp)
 
 # Copy shader files to build directory

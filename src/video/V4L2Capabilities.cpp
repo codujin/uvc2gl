@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include <cstring>
 #include <iostream>
+#include <vector>
 
 namespace uvc2gl {
 
@@ -26,32 +27,43 @@ std::vector<VideoFormat> V4L2Capabilities::QueryFormats(const std::string& devic
         return formats;
     }
     
-    // Query MJPEG format sizes
-    v4l2_frmsizeenum frmsize{};
-    frmsize.pixel_format = V4L2_PIX_FMT_MJPEG;
-    frmsize.index = 0;
+    // Enumerate all supported pixel formats
+    v4l2_fmtdesc fmtdesc{};
+    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmtdesc.index = 0;
     
-    while (xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) {
-        if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
-            int width = frmsize.discrete.width;
-            int height = frmsize.discrete.height;
-            
-            // Query framerates for this resolution
-            v4l2_frmivalenum frmival{};
-            frmival.pixel_format = V4L2_PIX_FMT_MJPEG;
-            frmival.width = width;
-            frmival.height = height;
-            frmival.index = 0;
-            
-            while (xioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) == 0) {
-                if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) {
-                    int fps = frmival.discrete.denominator / frmival.discrete.numerator;
-                    formats.push_back({width, height, fps});
+    while (xioctl(fd, VIDIOC_ENUM_FMT, &fmtdesc) == 0) {
+        uint32_t pixelFormat = fmtdesc.pixelformat;
+        
+        // Query frame sizes for this format
+        v4l2_frmsizeenum frmsize{};
+        frmsize.pixel_format = pixelFormat;
+        frmsize.index = 0;
+        
+        while (xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) {
+            if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
+                int width = frmsize.discrete.width;
+                int height = frmsize.discrete.height;
+                
+                // Query framerates for this resolution and format
+                v4l2_frmivalenum frmival{};
+                frmival.pixel_format = pixelFormat;
+                frmival.width = width;
+                frmival.height = height;
+                frmival.index = 0;
+                
+                while (xioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) == 0) {
+                    if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) {
+                        int fps = frmival.discrete.denominator / frmival.discrete.numerator;
+                        formats.push_back({width, height, fps, pixelFormat});
+                    }
+                    frmival.index++;
                 }
-                frmival.index++;
             }
+            frmsize.index++;
         }
-        frmsize.index++;
+        
+        fmtdesc.index++;
     }
     
     close(fd);

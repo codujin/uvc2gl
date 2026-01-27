@@ -1,6 +1,7 @@
 #ifndef V4L2CAPABILITIES_H
 #define V4L2CAPABILITIES_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -10,6 +11,7 @@ struct VideoFormat {
     int width;
     int height;
     int fps;
+    uint32_t pixelFormat;  // V4L2 pixel format (e.g., V4L2_PIX_FMT_MJPEG, V4L2_PIX_FMT_YUYV)
     
     std::string toString() const {
         return std::to_string(width) + "x" + std::to_string(height) + " @ " + std::to_string(fps) + "fps";

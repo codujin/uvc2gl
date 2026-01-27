@@ -3,11 +3,21 @@
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_opengl3.h>
+#include <linux/videodev2.h>
 #include <iostream>
 #include <chrono>
 #include <thread>
 
 namespace uvc2gl {
+
+// Helper function to convert format string to V4L2 pixel format
+static uint32_t GetPixelFormat(const std::string& format) {
+    if (format == "YUYV") {
+        return V4L2_PIX_FMT_YUYV;
+    } else {
+        return V4L2_PIX_FMT_MJPEG;
+    }
+}
 
 Application::Application(const char* title, int width, int height) {
     m_window = std::make_unique<Window>(title, width, height);
@@ -52,6 +62,7 @@ Application::Application(const char* title, int width, int height) {
     m_currentWidth = m_config.width;
     m_currentHeight = m_config.height;
     m_currentFps = m_config.fps;
+    m_currentFormat = m_config.videoFormat;
     
     bool formatFound = false;
     if (!m_availableFormats.empty()) {
@@ -76,7 +87,7 @@ Application::Application(const char* title, int width, int height) {
     
     // Try to initialize video capture (may fail if device not available)
     try {
-        m_video = std::make_unique<VideoCapture>(m_currentDevice, m_currentWidth, m_currentHeight, m_currentFps, 10);
+        m_video = std::make_unique<VideoCapture>(m_currentDevice, m_currentWidth, m_currentHeight, m_currentFps, m_currentFormat, 10);
         m_decoder = std::make_unique<MjpgDecoder>();
         m_video->Start();
         
@@ -314,16 +325,83 @@ void Application::RenderUI() {
                 
                 ImGui::Text("Resolution & Framerate");
                 ImGui::Indent();
+                
+                // Filter formats for current video format
+                uint32_t currentPixelFormat = GetPixelFormat(m_currentFormat);
+                std::vector<VideoFormat> filteredFormats;
                 for (const auto& format : m_availableFormats) {
-                    std::string label = format.toString();
-                    if (ImGui::MenuItem(label.c_str())) {
-                        RestartCapture(format.width, format.height, format.fps);
-                        m_showContextMenu = false;
+                    if (format.pixelFormat == currentPixelFormat) {
+                        filteredFormats.push_back(format);
+                    }
+                }
+                
+                // Find current format index in filtered list
+                int currentResIdx = 0;
+                std::string currentFormatStr = std::to_string(m_currentWidth) + "x" + 
+                                               std::to_string(m_currentHeight) + " @ " + 
+                                               std::to_string(m_currentFps) + "fps";
+                for (size_t i = 0; i < filteredFormats.size(); ++i) {
+                    if (filteredFormats[i].width == m_currentWidth &&
+                        filteredFormats[i].height == m_currentHeight &&
+                        filteredFormats[i].fps == m_currentFps) {
+                        currentResIdx = static_cast<int>(i);
+                        break;
+                    }
+                }
+                
+                ImGui::SetNextItemWidth(200);
+                if (!filteredFormats.empty()) {
+                    if (ImGui::BeginCombo("##resolution", filteredFormats[currentResIdx].toString().c_str())) {
+                        for (size_t i = 0; i < filteredFormats.size(); ++i) {
+                            bool isSelected = (i == static_cast<size_t>(currentResIdx));
+                            if (ImGui::Selectable(filteredFormats[i].toString().c_str(), isSelected)) {
+                                RestartCapture(filteredFormats[i].width, 
+                                             filteredFormats[i].height, 
+                                             filteredFormats[i].fps);
+                            }
+                            if (isSelected) {
+                                ImGui::SetItemDefaultFocus();
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+                } else {
+                    ImGui::Text("No formats available");
+                }
+                ImGui::Unindent();
+                ImGui::Spacing();
+                
+                ImGui::Text("Video Format");
+                ImGui::Indent();
+                const char* formats[] = { "MJPEG", "YUYV" };
+                int currentFormatIdx = (m_currentFormat == "YUYV") ? 1 : 0;
+                ImGui::SetNextItemWidth(200);
+                if (ImGui::Combo("##format", &currentFormatIdx, formats, 2)) {
+                    std::string newFormat = formats[currentFormatIdx];
+                    if (newFormat != m_currentFormat) {
+                        m_currentFormat = newFormat;
+                        
+                        // Find first available resolution for the new format
+                        uint32_t newPixelFormat = GetPixelFormat(m_currentFormat);
+                        bool foundFormat = false;
+                        for (const auto& format : m_availableFormats) {
+                            if (format.pixelFormat == newPixelFormat) {
+                                m_currentWidth = format.width;
+                                m_currentHeight = format.height;
+                                m_currentFps = format.fps;
+                                foundFormat = true;
+                                break;
+                            }
+                        }
+                        
+                        if (foundFormat) {
+                            RestartCapture(m_currentWidth, m_currentHeight, m_currentFps);
+                            SaveConfig();
+                        }
                     }
                 }
                 ImGui::Unindent();
                 ImGui::Spacing();
-                ImGui::Text("Current: %dx%d @ %dfps", m_currentWidth, m_currentHeight, m_currentFps);
             }
             
             // Audio section
@@ -399,7 +477,7 @@ void Application::RestartCapture(int width, int height, int fps) {
     
     // Start new capture
     try {
-        m_video = std::make_unique<VideoCapture>(m_currentDevice, width, height, fps, 10);
+        m_video = std::make_unique<VideoCapture>(m_currentDevice, width, height, fps, m_currentFormat, 10);
         m_video->Start();
         
         // Give it a moment to validate it's working
@@ -463,7 +541,7 @@ void Application::SwitchDevice(const std::string& devicePath) {
     
     // Start capture with new device
     try {
-        m_video = std::make_unique<VideoCapture>(m_currentDevice, m_currentWidth, m_currentHeight, m_currentFps, 10);
+        m_video = std::make_unique<VideoCapture>(m_currentDevice, m_currentWidth, m_currentHeight, m_currentFps, m_currentFormat, 10);
         m_video->Start();
         
         // Give it a moment to validate it's working
@@ -534,6 +612,7 @@ void Application::SaveConfig() {
     m_config.width = m_currentWidth;
     m_config.height = m_currentHeight;
     m_config.fps = m_currentFps;
+    m_config.videoFormat = m_currentFormat;
     if (m_audioPlayback) {
         m_config.volume = m_audioPlayback->GetVolume();
     }

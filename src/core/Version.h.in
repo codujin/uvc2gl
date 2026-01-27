@@ -1,0 +1,15 @@
+#pragma once
+
+namespace uvc2gl {
+
+// Semantic Versioning: MAJOR.MINOR.PATCH[-PRERELEASE]
+// This file is auto-generated from VERSION file during CMake configuration
+// Update the VERSION file in the project root to change version numbers
+
+constexpr const char* VERSION = "@VERSION_STRING@";
+constexpr int VERSION_MAJOR = @VERSION_MAJOR@;
+constexpr int VERSION_MINOR = @VERSION_MINOR@;
+constexpr int VERSION_PATCH = @VERSION_PATCH@;
+constexpr const char* VERSION_PRERELEASE = "@VERSION_PRERELEASE@";  // Empty string "" for stable releases
+
+} // namespace uvc2gl
