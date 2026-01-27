@@ -12,6 +12,7 @@ struct AppConfig {
     int width = 1920;
     int height = 1080;
     int fps = 30;
+    std::string videoFormat = "MJPEG";  // MJPEG or YUYV
     float volume = 1.0f;
     
     bool LoadFromFile(const std::string& filename) {
@@ -34,6 +35,7 @@ struct AppConfig {
             else if (key == "width") width = std::stoi(value);
             else if (key == "height") height = std::stoi(value);
             else if (key == "fps") fps = std::stoi(value);
+            else if (key == "videoFormat") videoFormat = value;
             else if (key == "volume") volume = std::stof(value);
         }
         
@@ -56,6 +58,7 @@ struct AppConfig {
         file << "width=" << width << "\n";
         file << "height=" << height << "\n";
         file << "fps=" << fps << "\n";
+        file << "videoFormat=" << videoFormat << "\n";
         file << "volume=" << volume << "\n";
         
         file.close();

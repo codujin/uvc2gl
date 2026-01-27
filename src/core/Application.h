@@ -57,6 +57,7 @@ private:
     int m_currentWidth = 1920;
     int m_currentHeight = 1080;
     int m_currentFps = 30;
+    std::string m_currentFormat = "YUYV";
     bool m_isFullscreen = false;
     
     AppConfig m_config;

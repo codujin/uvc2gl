@@ -31,10 +31,11 @@ namespace uvc2gl {
         size_t length = 0;
     };
 
-    VideoCapture::VideoCapture(std::string device, int width, int height, int fps, size_t ringBufferSize)
-        : m_Device(std::move(device)), m_Width(width), m_Height(height), m_FPS(fps) {
+    VideoCapture::VideoCapture(std::string device, int width, int height, int fps, std::string format, size_t ringBufferSize)
+        : m_Device(std::move(device)), m_Width(width), m_Height(height), m_FPS(fps), m_Format(std::move(format)) {
         m_RingBuffer = std::make_unique<RingBuffer>(ringBufferSize);
-        m_decoder = std::make_unique<MjpgDecoder>();
+        m_mjpegDecoder = std::make_unique<MjpgDecoder>();
+        m_yuyvDecoder = std::make_unique<YuyvDecoder>();
         m_Running = false;
     }
 
@@ -83,7 +84,11 @@ namespace uvc2gl {
         fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         fmt.fmt.pix.width = m_Width;
         fmt.fmt.pix.height = m_Height;
-        fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
+        if (m_Format == "YUYV") {
+            fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+        } else {
+            fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
+        }
         fmt.fmt.pix.field = V4L2_FIELD_ANY;
         if (xioctl(fd, VIDIOC_S_FMT, &fmt) < 0) {
             close(fd);
@@ -179,7 +184,17 @@ namespace uvc2gl {
 
             int width, height;
             std::vector<uint8_t> rgbData;
-            if (m_decoder->DecodeToRGB(mjpgData, mjpgSize, width, height, rgbData)){
+            bool success = false;
+            
+            if (m_Format == "YUYV") {
+                width = m_Width;
+                height = m_Height;
+                success = m_yuyvDecoder->DecodeToRGB(mjpgData, width, height, rgbData);
+            } else {
+                success = m_mjpegDecoder->DecodeToRGB(mjpgData, mjpgSize, width, height, rgbData);
+            }
+            
+            if (success) {
                 Frame frame;
                 frame.width = width;
                 frame.height = height;

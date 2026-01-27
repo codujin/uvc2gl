@@ -52,6 +52,7 @@ Application::Application(const char* title, int width, int height) {
     m_currentWidth = m_config.width;
     m_currentHeight = m_config.height;
     m_currentFps = m_config.fps;
+    m_currentFormat = m_config.videoFormat;
     
     bool formatFound = false;
     if (!m_availableFormats.empty()) {
@@ -76,7 +77,7 @@ Application::Application(const char* title, int width, int height) {
     
     // Try to initialize video capture (may fail if device not available)
     try {
-        m_video = std::make_unique<VideoCapture>(m_currentDevice, m_currentWidth, m_currentHeight, m_currentFps, 10);
+        m_video = std::make_unique<VideoCapture>(m_currentDevice, m_currentWidth, m_currentHeight, m_currentFps, m_currentFormat, 10);
         m_decoder = std::make_unique<MjpgDecoder>();
         m_video->Start();
         
@@ -342,6 +343,19 @@ void Application::RenderUI() {
                 }
                 ImGui::Unindent();
                 ImGui::Spacing();
+                
+                ImGui::Text("Video Format");
+                ImGui::Indent();
+                const char* formats[] = { "MJPEG", "YUYV" };
+                int currentFormatIdx = (m_currentFormat == "YUYV") ? 1 : 0;
+                ImGui::SetNextItemWidth(200);
+                if (ImGui::Combo("##format", &currentFormatIdx, formats, 2)) {
+                    m_currentFormat = formats[currentFormatIdx];
+                    RestartCapture(m_currentWidth, m_currentHeight, m_currentFps);
+                    SaveConfig();
+                }
+                ImGui::Unindent();
+                ImGui::Spacing();
             }
             
             // Audio section
@@ -417,7 +431,7 @@ void Application::RestartCapture(int width, int height, int fps) {
     
     // Start new capture
     try {
-        m_video = std::make_unique<VideoCapture>(m_currentDevice, width, height, fps, 10);
+        m_video = std::make_unique<VideoCapture>(m_currentDevice, width, height, fps, m_currentFormat, 10);
         m_video->Start();
         
         // Give it a moment to validate it's working
@@ -481,7 +495,7 @@ void Application::SwitchDevice(const std::string& devicePath) {
     
     // Start capture with new device
     try {
-        m_video = std::make_unique<VideoCapture>(m_currentDevice, m_currentWidth, m_currentHeight, m_currentFps, 10);
+        m_video = std::make_unique<VideoCapture>(m_currentDevice, m_currentWidth, m_currentHeight, m_currentFps, m_currentFormat, 10);
         m_video->Start();
         
         // Give it a moment to validate it's working
@@ -552,6 +566,7 @@ void Application::SaveConfig() {
     m_config.width = m_currentWidth;
     m_config.height = m_currentHeight;
     m_config.fps = m_currentFps;
+    m_config.videoFormat = m_currentFormat;
     if (m_audioPlayback) {
         m_config.volume = m_audioPlayback->GetVolume();
     }

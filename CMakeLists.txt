@@ -22,6 +22,14 @@ configure_file(
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Optimization flags
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+
 # SDL2
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
@@ -66,6 +74,7 @@ set(SOURCES
     src/graphics/Shader.cpp
     src/video/VideoCapture.cpp
     src/video/MjpgDecoder.cpp
+    src/video/YuyvDecoder.cpp
     src/video/V4L2Capabilities.cpp
     src/audio/AudioCapture.cpp
     src/audio/AudioPlayback.cpp
@@ -78,6 +87,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 add_executable(Probe src/video/v4l2Probe.cpp)
 add_executable(StreamMjpg src/video/v4l2StreamMjpg.cpp)
 add_executable(MjpgDecodeTest src/video/MjpgDecodeTest.cpp)
+add_executable(YuyvDecodeTest src/video/YuyvDecodeTest.cpp src/video/YuyvDecoder.cpp)
 add_executable(AudioProbe src/audio/AudioProbe.cpp)
 
 # Copy shader files to build directory
