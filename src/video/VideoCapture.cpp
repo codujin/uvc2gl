@@ -173,8 +173,8 @@ namespace uvc2gl {
                 continue;
             }
 
-            const uint8_t* mjpgData = static_cast<uint8_t*>(buffers[buff.index].start);
-            size_t mjpgSize = buff.bytesused;
+            const uint8_t* frameData = static_cast<uint8_t*>(buffers[buff.index].start);
+            size_t frameSize = buff.bytesused;
 
             if (warmupFrames > 0){
                 --warmupFrames;
@@ -189,9 +189,9 @@ namespace uvc2gl {
             if (m_Format == "YUYV") {
                 width = m_Width;
                 height = m_Height;
-                success = m_yuyvDecoder->DecodeToRGB(mjpgData, width, height, rgbData);
+                success = m_yuyvDecoder->DecodeToRGB(frameData, width, height, rgbData);
             } else {
-                success = m_mjpegDecoder->DecodeToRGB(mjpgData, mjpgSize, width, height, rgbData);
+                success = m_mjpegDecoder->DecodeToRGB(frameData, frameSize, width, height, rgbData);
             }
             
             if (success) {
