@@ -90,6 +90,16 @@ namespace uvc2gl {
             throw std::runtime_error("Error setting format: " + std::string(strerror(errno)));
         }
 
+        // Set framerate
+        v4l2_streamparm parm{};
+        parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        parm.parm.capture.timeperframe.numerator = 1;
+        parm.parm.capture.timeperframe.denominator = m_FPS;
+        if (xioctl(fd, VIDIOC_S_PARM, &parm) < 0) {
+            std::cerr << "Warning: Failed to set framerate: " << strerror(errno) << std::endl;
+            // Don't fail - some devices might not support this
+        }
+
         v4l2_requestbuffers reqBuffer{};
         reqBuffer.count = 4; // Request 4 buffers
         reqBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;

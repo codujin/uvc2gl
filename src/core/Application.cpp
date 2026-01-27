@@ -314,16 +314,34 @@ void Application::RenderUI() {
                 
                 ImGui::Text("Resolution & Framerate");
                 ImGui::Indent();
-                for (const auto& format : m_availableFormats) {
-                    std::string label = format.toString();
-                    if (ImGui::MenuItem(label.c_str())) {
-                        RestartCapture(format.width, format.height, format.fps);
-                        m_showContextMenu = false;
+                // Find current format index
+                int currentResIdx = 0;
+                for (size_t i = 0; i < m_availableFormats.size(); ++i) {
+                    if (m_availableFormats[i].width == m_currentWidth &&
+                        m_availableFormats[i].height == m_currentHeight &&
+                        m_availableFormats[i].fps == m_currentFps) {
+                        currentResIdx = static_cast<int>(i);
+                        break;
                     }
+                }
+                
+                ImGui::SetNextItemWidth(200);
+                if (ImGui::BeginCombo("##resolution", m_availableFormats[currentResIdx].toString().c_str())) {
+                    for (size_t i = 0; i < m_availableFormats.size(); ++i) {
+                        bool isSelected = (i == static_cast<size_t>(currentResIdx));
+                        if (ImGui::Selectable(m_availableFormats[i].toString().c_str(), isSelected)) {
+                            RestartCapture(m_availableFormats[i].width, 
+                                         m_availableFormats[i].height, 
+                                         m_availableFormats[i].fps);
+                        }
+                        if (isSelected) {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+                    ImGui::EndCombo();
                 }
                 ImGui::Unindent();
                 ImGui::Spacing();
-                ImGui::Text("Current: %dx%d @ %dfps", m_currentWidth, m_currentHeight, m_currentFps);
             }
             
             // Audio section

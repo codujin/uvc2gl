@@ -13,6 +13,9 @@ CMakeUserPresets.json
 build/
 plan.md
 
+# Generated files
+src/core/Version.h
+
 .vscode/
 .cache/
 
