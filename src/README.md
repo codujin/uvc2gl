@@ -31,12 +31,16 @@ src/
 │   ├── VideoCapture.cpp
 │   ├── MjpgDecoder.h
 │   ├── MjpgDecoder.cpp
+│   ├── YuyvDecoder.h
+│   ├── YuyvDecoder.cpp
 │   ├── V4L2Capabilities.h
 │   ├── V4L2Capabilities.cpp
 │   ├── Frame.h
 │   ├── RingBuffer.h
 │   ├── v4l2Probe.cpp
-│   └── v4l2StreamMjpg.cpp
+│   ├── v4l2StreamMjpg.cpp
+│   ├── MjpgDecodeTest.cpp
+│   └── YuyvDecodeTest.cpp
 ├── assets/         # Shader files and resources
 │   └── shaders/
 │       ├── Quad.vert
@@ -66,7 +70,7 @@ src/
 - **Purpose**: Configuration file management
 - **Responsibilities**:
   - Saves/loads device preferences (video/audio)
-  - Persists resolution, framerate, and volume settings
+  - Persists resolution, framerate, format, and volume settings
   - Simple key=value format (uvc2gl.conf)
   - Validates settings on load and falls back to defaults
 
@@ -143,7 +147,8 @@ src/
   - Opens and configures V4L2 device
   - Manages memory-mapped buffers
   - Runs capture loop in separate thread
-  - Decodes MJPEG frames to RGB
+  - Supports both MJPEG and YUYV formats
+  - Decodes frames to RGB using appropriate decoder
   - Pushes decoded frames to ring buffer
   - Handles device errors and cleanup
   - Exception-safe destruction and stopping
@@ -156,6 +161,15 @@ src/
   - Converts YUV to RGB using swscale
   - Manages codec context and frame buffers
   - Validates MJPEG data integrity
+
+#### YuyvDecoder (`YuyvDecoder.h/cpp`)
+- **Purpose**: CPU-based YUYV to RGB conversion
+- **Responsibilities**:
+  - Decodes YUYV 4:2:2 format to RGB
+  - Implements ITU-R BT.601 color space conversion
+  - Processes 2 pixels at a time (Y0 U Y1 V)
+  - Optimized with pointer arithmetic and value reuse
+  - Achieves 60fps at 1080p with compiler auto-vectorization (-O3 -march=native)
 
 #### V4L2Capabilities (`V4L2Capabilities.h/cpp`)
 - **Purpose**: Query devices and available video formats
@@ -181,6 +195,8 @@ src/
 #### Utilities
 - **v4l2Probe.cpp**: Standalone tool to query V4L2 device info
 - **v4l2StreamMjpg.cpp**: Test utility to capture MJPEG frames to disk
+- **MjpgDecodeTest.cpp**: Test FFmpeg MJPEG decoder
+- **YuyvDecodeTest.cpp**: Test YUYV decoder with known patterns (validates color conversion)
 
 ## Design Principles
 
@@ -203,8 +219,8 @@ src/
 
 ### Data Flow
 ```
-V4L2 Device → MJPEG Buffers → FFmpeg Decoder → RGB Frame → Ring Buffer → GPU Texture → OpenGL Quad
-    (video capture thread)                                       (main thread)
+V4L2 Device → Format Buffers → Decoder (MJPEG/YUYV) → RGB Frame → Ring Buffer → GPU Texture → OpenGL Quad
+    (video capture thread)                                             (main thread)
 
 ALSA Device → PCM Samples → Double Buffer → Main Thread → SDL Ring Buffer → Audio Playback
     (audio capture thread)                  (main thread)         (SDL audio thread)
@@ -218,9 +234,13 @@ ALSA Device → PCM Samples → Double Buffer → Main Thread → SDL Ring Buffe
 
 ## Recent Improvements
 
+- **YUYV Format Support**: CPU-based YUYV decoder with 60fps performance at 1080p
+- **Dual Format Support**: Runtime switching between MJPEG and YUYV formats
+- **Compiler Optimizations**: Release builds with -O3 -march=native for auto-vectorization
+- **Semantic Versioning**: Auto-generated version from VERSION file via CMake
 - **Audio Support**: Full ALSA capture with SDL2 playback
 - **Volume Control**: Real-time adjustable volume with ImGui slider
-- **Configuration Persistence**: Auto-saves device preferences and settings
+- **Configuration Persistence**: Auto-saves device preferences, format, and settings
 - **Device Validation**: Checks if devices are actually working before use
 - **Fullscreen Mode**: F11/F/ESC support with proper window management
 - **Collapsible UI**: Organized Video/Audio sections in context menu
